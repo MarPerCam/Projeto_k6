@@ -1,93 +1,197 @@
-# Projeto_k6
+# Projeto: Orquestrador de Testes k6 + Análise com Gemini
+
+Automatize um fluxo completo de teste de carga com k6, do CSV de URLs até a análise técnica em Markdown, validando métricas contra SLOs de mercado.
+
+## 🔎 Visão geral
+
+Este projeto:
+
+Lê urls.csv (coluna url);
+
+Gera scripts_k6/teste_carga.js (sem libs externas);
+
+Executa k6 run e salva métricas em results_k6/results.csv;
+
+Consolida p50/p90/p95/p99, RPS e taxa de erro;
+
+Faz validação local por SLO (p95 ≤ 1000 ms, erros ≤ 1%);
+
+Envia um resumo ao Gemini para parecer “como especialista em performance”;
+
+Salva o parecer em results_k6/analysis_gemini.md.
+
+O script já detecta automaticamente o formato novo do CSV do k6 (metric_name,timestamp,metric_value,...) e também o formato antigo (metric,timestamp,value,...).
+
+## 📂 Estrutura de pastas
+.
+├─ orquestrar_k6.py
+├─ urls.csv                # Entrada (coluna: url)
+├─ scripts_k6/
+│  └─ teste_carga.js      # Script k6 gerado automaticamente
+└─ results_k6/
+   ├─ results.csv          # Saída bruta do k6 (--out csv=...)
+   └─ analysis_gemini.md   # Parecer do Gemini (Markdown)
+
+## ✅ Pré-requisitos
+
+Python 3.10+ (testado em 3.11)
+
+k6 instalado e no PATH
+
+Verifique com: k6 version
+
+Conta/chave do Google Gemini (defina em GOOGLE_API_KEY)
+
+Tornando o k6 disponível no PowerShell (Windows)
+
+Abra o PowerShell como usuário (ou admin para todos) e rode:
+
+# Ajuste o caminho conforme sua instalação (ex.: C:\Program Files\k6\bin)
+$k6Path = "C:\Program Files\k6"
+$curr = [Environment]::GetEnvironmentVariable("Path","User")
+[Environment]::SetEnvironmentVariable("Path", $curr + ";" + $k6Path, "User")
 
 
+Feche e reabra o terminal, então:
 
-## Getting started
+k6 version
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## 🛠️ Instalação
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+No diretório do projeto:
 
-## Add your files
+pip install pandas google-generativeai
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/marpercam-group/projeto_k6.git
-git branch -M main
-git push -uf origin main
-```
+Defina a chave do Gemini (reabra o terminal após setx):
 
-## Integrate with your tools
+setx GOOGLE_API_KEY "sua-chave-aqui"
 
-- [ ] [Set up project integrations](https://gitlab.com/marpercam-group/projeto_k6/-/settings/integrations)
+## ⚙️ Configuração
+urls.csv
 
-## Collaborate with your team
+Crie um arquivo com cabeçalho url:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+url
+https://www.exemplo.com.br/
+https://www.exemplo.com.br/produtos/
+https://www.exemplo.com.br/contato/
 
-## Test and Deploy
+Parâmetros padrão do teste
 
-Use the built-in continuous integration in GitLab.
+No orquestrar_k6.py:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+K6_VUS = 10
 
-***
+K6_DURATION = '2m'
 
-# Editing this README
+SLOs (validação local)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+SLO_P95_MS = 1000.0 (p95 ≤ 1000 ms)
 
-## Suggestions for a good README
+SLO_ERR_PCT = 1.0 (erros ≤ 1%)
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Ajuste conforme seu contexto (B2C, B2B, mobile, páginas dinâmicas, etc.).
 
-## Name
-Choose a self-explaining name for your project.
+## ▶️ Como executar
+python orquestrar_k6.py
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Saídas:
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Script k6: scripts_k6/teste_carga.js
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+Resultados brutos: results_k6/results.csv
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Análise técnica (Markdown): results_k6/analysis_gemini.md
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Abra o Markdown no editor de sua preferência.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## 🧪 O que é validado
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Latência (ms): p50, p90, p95, p99 a partir de http_req_duration
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Taxa de erro (%): média de http_req_failed (0/1) × 100
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Throughput (RPS): sum(http_reqs) / janela_em_segundos
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Janela efetiva: calculada pelo intervalo de timestamp do CSV
 
-## License
-For open source projects, say how it is licensed.
+O README considera o formato novo do CSV do k6. Exemplo de linha:
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+metric_name,timestamp,metric_value,check,error,error_code,expected_response,group,method,name,proto,scenario,service,status,subproto,tls_version,url,extra_tags,metadata
+http_req_duration,1755385410,277.480900,,,,true,,GET,https://www.blazedemo.com,HTTP/2.0,default,,200,,tls1.3,https://www.blazedemo.com,,
+
+## 🧠 Parecer do Gemini
+
+O orquestrador monta um resumo sintético (VUs, duração, amostra de URLs, RPS, latências, taxa de erro, resultado dos SLOs) e solicita ao Gemini:
+
+Diagnóstico objetivo
+
+Riscos ao usuário/negócio
+
+Recomendações técnicas priorizadas
+
+SLOs sugeridos (se necessário)
+
+Saída em: results_k6/analysis_gemini.md.
+
+A chave do Gemini é lida de GOOGLE_API_KEY. Não a deixe hardcoded no repositório.
+
+## 🔧 Personalização rápida
+
+Mudar carga: ajuste K6_VUS e K6_DURATION em orquestrar_k6.py.
+
+SLOs: edite SLO_P95_MS e SLO_ERR_PCT.
+
+Amostra maior de URLs no resumo: altere a função build_compact_summary_text.
+
+Somente gerar o script: comente a chamada run_k6_test() no final do main().
+
+Se desejar cenários com ramp-up, thresholds nativos no k6, ou por-URL, veja “Roadmap” abaixo.
+
+## 🧯 Solução de problemas
+
+k6 não encontrado no PowerShell
+
+Garanta que o caminho do k6.exe está no PATH do usuário (ver seção de PATH acima).
+
+Feche e reabra o terminal/VS Code.
+
+CSV sem colunas esperadas
+
+Este projeto suporta:
+
+Novo: metric_name, timestamp, metric_value, ...
+
+Antigo: metric, timestamp, value, ...
+
+Se o CSV foi modificado por planilha/Excel, salve novamente sem mexer nos cabeçalhos.
+
+Falha ao chamar o Gemini
+
+Verifique GOOGLE_API_KEY.
+
+Se não puder usar IA no momento, o CSV e o resumo local ainda estarão disponíveis.
+
+## 🗺️ Roadmap (sugestões de evolução)
+
+Quebra por endpoint (por-URL): p95/erros por name/url no CSV.
+
+Cenários k6 avançados: ramping (stages), smoke & stress, arrival-rate (RPS constante).
+
+Thresholds no k6: reprovar teste na origem com thresholds (ex.: http_req_duration{p(95)} < 1000).
+
+Relatórios ricos: HTML/PNG com gráficos de latência, erro e RPS.
+
+Execução distribuída: k6 cloud ou múltiplos nós on-prem.
+
+## 📜 Boas práticas
+
+Defina SLOs coerentes com o contexto de negócio (p95 no app crítico costuma ser 500–1000 ms; erro ≤ 0,1–1%).
+
+Mantenha dados de teste previsíveis para comparações históricas.
+
+Versione o urls.csv e o analysis_gemini.md para observar evolução entre execuções.
+
+Use ambientes isolados para não impactar produção.
