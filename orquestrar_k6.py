@@ -25,7 +25,7 @@ SLO_P95_MS = 1000.0   # p95 deve ser <= 1000 ms
 SLO_ERR_PCT = 1.0     # taxa de erro deve ser <= 1%
 
 # API Gemini via variável de ambiente
-API_KEY = 'AIzaSyBuyH3zYRhjO6V9OfPxaRoArJI3wGY8Iz0'
+API_KEY = 'GEMINI_API_KEY'
 
 # ===== Utilidades =====
 def ensure_dirs():
